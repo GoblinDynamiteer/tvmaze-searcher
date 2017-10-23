@@ -55,13 +55,30 @@ class Show:
         print("IMDb rating: " + str(self.imdb_rating))
         #print("Actors: " + self.actors)
 
+    def get_episode_info(self, match_season, match_episode, data):
+        for episode in self.episodes:
+            if episode.episode_number == match_episode \
+            and episode.season_number == match_season:
+                if(hasattr(episode, data) == False) and data != "full":
+                    print("Data not available for episode: " + data)
+                    return
+                if data == "title":
+                    print(episode.title)
+                elif data == "release_date":
+                    print(episode.release_date)
+                elif data == "tvmaze_url":
+                    print(episode.tvmaze_url)
+                elif data == "full":
+                    episode.to_string()
+                return
+        print("Episode not found")
+
     def list_episodes(self):
         for episode in self.episodes:
             episode.to_string()
 
     def get_episode_count(self):
         return self.episode_count
-
 
     def __find_episodes(self):
         self.episodes = []
@@ -74,8 +91,9 @@ class Episode:
         self.episode_number = json_data['number']
         self.season_number = json_data['season']
         self.release_date = json_data['airdate']
+        self.tvmaze_url = json_data['url']
     def to_string(self):
-        print("S" + "%02d" % self.season_number + "E" + \
+        print(show.title + " - S" + "%02d" % self.season_number + "E" + \
             "%02d" % self.episode_number + ": " + self.title + \
             " (" + self.release_date + ")")
 
@@ -85,11 +103,11 @@ site = " http://api.tvmaze.com"     #/lookup/shows?imdb=
 
 parser = argparse.ArgumentParser(description='TVMaze search')
 parser.add_argument('query', type=str, help='Search query')
-parser.add_argument('-season', dest='season', help='Season')
-parser.add_argument('-episode', dest='episode', help='Episode')
-parser.add_argument('-output', dest='output', \
-    help='Output: full, full_noep, imdb, title, year, runtime, actors,' \
-    'genre, episode_list, episode_count') # -o works'
+parser.add_argument('-season', dest = 'season', type = int, help = 'Season')
+parser.add_argument('-episode', dest = 'episode', type = int, help = 'Episode')
+parser.add_argument('-output', dest = 'output', \
+    help='Output: title, release_date, full, tvmaze_url' \
+    'imdb, rating, tvmaze_id, episode_count, season_count, rating, country') # -o works'
 args = parser.parse_args()
 
 # Build search url
@@ -109,9 +127,33 @@ except:
     sys.exit()
 
 show = Show(json_data)
-show.to_string()
-show.list_episodes()
 
 # Output
-
-#print(json_data[args.output])
+if args.season and args.episode:
+    if args.output == None:
+        show.get_episode_info(args.season, args.episode, "full")
+    else:
+        show.get_episode_info(args.season, args.episode, args.output)
+elif args.output == "full":
+    show.to_string()
+    show.list_episodes()
+elif args.output == "title":
+    print(show.title)
+elif args.output == "year":
+    print(show.year)
+elif args.output == "imdb":
+    print(show.imdb_id)
+elif args.output == "rating":
+    print(show.imdb_rating)
+elif args.output == "country":
+    print(show.country)
+elif args.output == "episode_count":
+    print(show.episode_count)
+elif args.output == "season_count":
+    print(show.season_count)
+elif args.output == "tvmaze_id":
+    print(re.sub("http:\/\/api.tvmaze.com\/shows\/", "", show.tvmaze_url))
+elif args.output == "tvmaze_url":
+    print(show.tvmaze_url)
+else: # Invalid or no output given, show full info w/o episode data
+    show.to_string()
