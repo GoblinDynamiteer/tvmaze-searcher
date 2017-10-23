@@ -6,10 +6,16 @@ def is_imdb(string):
     re_imdb = re.compile("^tt\d{1,}")
     return True if re_imdb.search(string) else False
 
+# Check if string is an IMDB-id
+def possible_maze_id(string):
+    re_imdb = re.compile("^\d{1,}")
+    return True if re_imdb.search(string) else False
+
 class Show:
     def __init__(self, json_data):
         self.title = json_data['name']
         self.year = json_data['premiered']
+        self.status = json_data['status']
         self.imdb_id = json_data["externals"]["imdb"]
         self.imdb_rating = json_data["rating"]["average"]
         self.genre = ""
@@ -36,6 +42,9 @@ class Show:
         self.episodes = None
 
         self.__find_episodes()
+
+        self.last_aired_date = self.episodes[-1].release_date
+        self.last_aired = self.episodes[-1].to_string_se()
 
     def to_string(self):
         print("Show: " + self.title + \
@@ -89,10 +98,14 @@ class Episode:
         print(show.title + " - S" + "%02d" % self.season_number + "E" + \
             "%02d" % self.episode_number + ": " + self.title + \
             " (" + self.release_date + ")")
+    def to_string_se(self):
+        return "S" + "%02d" % self.season_number + "E" + \
+            "%02d" % self.episode_number
 
 
 site = " http://api.tvmaze.com"     #/lookup/shows?imdb=
                                     #/singlesearch/shows?q=
+                                    #/shows/
 
 parser = argparse.ArgumentParser(description='TVMaze search')
 parser.add_argument('query', type=str, help='Search query')
@@ -100,13 +113,16 @@ parser.add_argument('-season', dest = 'season', type = int, help = 'Season')
 parser.add_argument('-episode', dest = 'episode', type = int, help = 'Episode')
 parser.add_argument('-output', dest = 'output', \
     help='Output: title, release_date, full, tvmaze_url' \
-    'imdb, rating, tvmaze_id, episode_count, season_count, rating, country') # -o works'
+    'imdb, rating, tvmaze_id, episode_count, season_count,' \
+    'rating, country, genre, status, last_aired, last_aired_date') # -o works'
 args = parser.parse_args()
 
 # Build search url
 search_string_url = site
 if is_imdb(args.query):
     search_string_url += "/lookup/shows?imdb=" + args.query
+elif possible_maze_id(args.query):
+    search_string_url += "/shows/" + args.query
 else:
     search_string_url += "/singlesearch/shows?q=" + \
         re.sub('\s+', '+', args.query)
@@ -136,10 +152,18 @@ elif args.output == "year":
     print(show.year)
 elif args.output == "imdb":
     print(show.imdb_id)
+elif args.output == "genre":
+    print(show.genre)
 elif args.output == "rating":
     print(show.imdb_rating)
+elif args.output == "status":
+    print(show.status)
 elif args.output == "country":
     print(show.country)
+elif args.output == "last_aired":
+    print(show.last_aired)
+elif args.output == "last_aired_date":
+    print(show.last_aired_date)
 elif args.output == "episode_count":
     print(show.episode_count)
 elif args.output == "season_count":
