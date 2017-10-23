@@ -6,13 +6,6 @@ def is_imdb(string):
     re_imdb = re.compile("^tt\d{1,}")
     return True if re_imdb.search(string) else False
 
-#Check that string is valid year
-def valid_year(string):
-    if string == None:
-        return False
-    re_year = re.compile("^[1-2]\d{3}$")
-    return True if (re_year.search(string) or string != None) else False
-
 class Show:
     def __init__(self, json_data):
         self.title = json_data['name']
