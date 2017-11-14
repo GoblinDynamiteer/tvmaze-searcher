@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json, urllib.request, sys, re, argparse
+from datetime import datetime
 
 # Check if string is an IMDB-id
 def is_imdb(string):
@@ -10,6 +11,11 @@ def is_imdb(string):
 def possible_maze_id(string):
     re_imdb = re.compile("^\d{1,}")
     return True if re_imdb.search(string) else False
+
+def get_date_as_string(date):
+    return str(date.year) + "-" + \
+    str("%02d" % date.month) + "-" + \
+    str("%02d" % date.day)
 
 class Show:
     def __init__(self, json_data):
@@ -72,7 +78,7 @@ class Show:
                 if data == "title":
                     print(episode.title)
                 elif data == "release_date":
-                    print(episode.release_date)
+                    print(get_date_as_string(episode.release_date))
                 elif data == "tvmaze_url":
                     print(episode.tvmaze_url)
                 elif data == "full":
@@ -97,15 +103,18 @@ class Episode:
         self.title = json_data['name']
         self.episode_number = json_data['number']
         self.season_number = json_data['season']
-        self.release_date = json_data['airdate']
+        self.release_date = datetime.strptime(json_data['airdate'], "%Y-%m-%d")
         self.tvmaze_url = json_data['url']
     def to_string(self):
         print(show.title + " - S" + "%02d" % self.season_number + "E" + \
             "%02d" % self.episode_number + ": " + self.title + \
-            " (" + self.release_date + ")")
+            " (" + get_date_as_string(self.release_date) + ")")
     def to_string_se(self):
         return "S" + "%02d" % self.season_number + "E" + \
             "%02d" % self.episode_number
+    def has_aired(self):
+        now = datetime.datetime.now()
+        print(self.release_date - now)
 
 
 site = " http://api.tvmaze.com"     #/lookup/shows?imdb=
@@ -168,7 +177,7 @@ elif args.output == "country":
 elif args.output == "last_aired":
     print(show.last_aired)
 elif args.output == "last_aired_date":
-    print(show.last_aired_date)
+    print(get_date_as_string(show.last_aired_date))
 elif args.output == "episode_count":
     print(show.episode_count)
 elif args.output == "season_count":
