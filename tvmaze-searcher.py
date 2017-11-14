@@ -13,9 +13,12 @@ def possible_maze_id(string):
     return True if re_imdb.search(string) else False
 
 def get_date_as_string(date):
-    return str(date.year) + "-" + \
-    str("%02d" % date.month) + "-" + \
-    str("%02d" % date.day)
+    try:
+        return str(date.year) + "-" + \
+        str("%02d" % date.month) + "-" + \
+        str("%02d" % date.day)
+    except:
+        return "N/A"
 
 class Show:
     def __init__(self, json_data):
@@ -83,6 +86,8 @@ class Show:
                     print(episode.tvmaze_url)
                 elif data == "full":
                     episode.to_string()
+                elif data == "has_aired":
+                    episode.has_aired()
                 return
         print("Episode not found")
 
@@ -103,7 +108,10 @@ class Episode:
         self.title = json_data['name']
         self.episode_number = json_data['number']
         self.season_number = json_data['season']
-        self.release_date = datetime.strptime(json_data['airdate'], "%Y-%m-%d")
+        try:
+            self.release_date = datetime.strptime(json_data['airdate'], "%Y-%m-%d")
+        except:
+            self.release_date = "N/A"
         self.tvmaze_url = json_data['url']
     def to_string(self):
         print(show.title + " - S" + "%02d" % self.season_number + "E" + \
@@ -113,8 +121,8 @@ class Episode:
         return "S" + "%02d" % self.season_number + "E" + \
             "%02d" % self.episode_number
     def has_aired(self):
-        now = datetime.datetime.now()
-        print(self.release_date - now)
+        now = datetime.now()
+        print((self.release_date - now).days)
 
 
 site = " http://api.tvmaze.com"     #/lookup/shows?imdb=
@@ -128,7 +136,8 @@ parser.add_argument('-episode', dest = 'episode', type = int, help = 'Episode')
 parser.add_argument('-output', dest = 'output', \
     help='Output: title, release_date, full, tvmaze_url' \
     'imdb, rating, tvmaze_id, episode_count, season_count,' \
-    'rating, country, genre, status, last_aired, last_aired_date') # -o works'
+    'rating, country, genre, status, last_aired, last_aired_date, ' \
+    'has_aired') # -o works'
 args = parser.parse_args()
 
 # Build search url
