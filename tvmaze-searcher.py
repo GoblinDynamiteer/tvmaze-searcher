@@ -58,8 +58,16 @@ class Show:
 
         self.__find_episodes()
 
-        self.last_aired_date = self.episodes[-1].release_date
-        self.last_aired = self.episodes[-1].to_string_se()
+        #find last aired episode
+        for i in range(0, len(self.episodes)):
+            if self.episodes[i].has_aired() == 0:
+                if i == 0:
+                    self.last_aired_date = "None Aired"
+                    self.last_aired = "None Aired"
+                else:
+                    self.last_aired_date = self.episodes[i-1].release_date
+                    self.last_aired = self.episodes[i-1].to_string_se()
+                break
 
     def to_string(self):
         print("Show: " + self.title + \
@@ -88,7 +96,7 @@ class Show:
                 elif data == "full":
                     episode.to_string()
                 elif data == "has_aired":
-                    episode.has_aired()
+                    print(episode.has_aired())
                 return
         print("Episode not found")
 
@@ -109,23 +117,38 @@ class Episode:
         self.title = json_data['name']
         self.episode_number = json_data['number']
         self.season_number = json_data['season']
+
         try:
             self.release_date = datetime.strptime( \
             json_data['airdate'], "%Y-%m-%d")
         except:
             self.release_date = "N/A"
+
         self.tvmaze_url = json_data['url']
+
+        if self.release_date != "N/A":
+            self.days_since_airdate = (datetime.now() - self.release_date).days
+        else:
+            self.days_since_airdate = "N/A"
+
     def to_string(self):
         print(show.title + " - S" + "%02d" % self.season_number + "E" + \
             "%02d" % self.episode_number + ": " + self.title + \
-            " (" + get_date_as_string(self.release_date) + ")")
+            " (" + get_date_as_string(self.release_date) + ")" +
+            " (" + str(self.days_since_airdate) + " days ago)")
+
     def to_string_se(self):
         return "S" + "%02d" % self.season_number + "E" + \
             "%02d" % self.episode_number
-    def has_aired(self):
-        now = datetime.now()
-        print((self.release_date - now).days)
 
+    def has_aired(self):
+        if self.days_since_airdate == "N/A":
+            return "N/A"
+
+        if self.days_since_airdate < 0:
+            return 0
+        else:
+            return 1
 
 site = " http://api.tvmaze.com"     #/lookup/shows?imdb=
                                     #/singlesearch/shows?q=
