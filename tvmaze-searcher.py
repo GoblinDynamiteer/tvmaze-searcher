@@ -34,12 +34,15 @@ class Show:
         self.genre = self.genre[:-2]
         #self.actors = json_data["Actors"]
         self.runtime = json_data["runtime"]
-        if json_data["network"] != None:
-            self.country = json_data["network"]["country"]["name"]
-        elif json_data["webChannel"] != None:
-            self.country = json_data["webChannel"]["country"]["name"]
-        else:
-            self.country = "Unknown"
+
+        try:
+            if json_data["network"] != None:
+                self.country = json_data["network"]["country"]["name"]
+            elif json_data["webChannel"] != None:
+                self.country = json_data["webChannel"]["country"]["name"]
+        except:
+            self.country = "Unknown Country"
+
         self.tvmaze_url = json_data["_links"]["self"]["href"]
         self.episode_json_data = None
 
