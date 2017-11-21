@@ -23,6 +23,8 @@ def get_date_as_string(date):
 
 class Show:
     def __init__(self, json_data):
+        self.last_aired_date = "None Aired"
+        self.last_aired = "None Aired"
         self.title = json_data['name']
         self.year = json_data['premiered']
         self.status = json_data['status']
@@ -67,10 +69,13 @@ class Show:
                 if i == 0:
                     self.last_aired_date = "None Aired"
                     self.last_aired = "None Aired"
-                else:
+                elif i < len(self.episodes) - 1:
                     self.last_aired_date = self.episodes[i-1].release_date
                     self.last_aired = self.episodes[i-1].to_string_se()
                 break
+            if i == len(self.episodes) - 1:
+                self.last_aired_date = self.episodes[i].release_date
+                self.last_aired = self.episodes[i].to_string_se()
 
     def to_string(self):
         print("Show: " + self.title + \
